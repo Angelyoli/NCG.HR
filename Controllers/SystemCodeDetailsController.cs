@@ -19,6 +19,8 @@ namespace NCG.HR.Controllers
             _context = context;
         }
 
+
+
         // GET: SystemCodeDetails
         public async Task<IActionResult> Index()
         {
