@@ -228,9 +228,21 @@
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a asp-controller="LeaveTypes" asp-action="Index" class="nav-link">
+                                    <a asp-controller="LeaveApplications" asp-action="Index" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
-                                        <p>请假类型管理</p>
+                                        <p>请假申请</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="LeaveApplications" asp-action="ApprovedLeaveApplications" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>已审批假条</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="LeaveApplications" asp-action="RejectedLeaveApplications" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>已驳回假条</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -243,6 +255,12 @@
                                     <a href="#" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>休假管理</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="LeaveTypes" asp-action="Index" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>请假类型管理</p>
                                     </a>
                                 </li>
                             </ul>

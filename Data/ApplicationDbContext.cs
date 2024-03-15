@@ -13,6 +13,26 @@ namespace NCG.HR.Data
         {
         }
 
+        /// <summary>
+        /// 解决外键引用锁，同一个表被另一个表同时引用外键两次以上
+        /// </summary>
+        /// <param name="builder"></param>
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+            foreach(var relationship in builder.Model.GetEntityTypes().SelectMany(r=>r.GetForeignKeys()))
+            {
+                relationship.DeleteBehavior = DeleteBehavior.Restrict;
+            }
+
+            // LeaveApplication 两个外键均为SysCodeDetails
+            builder.Entity<LeaveApplication>()
+                .HasOne(r => r.SystemStatus)
+                .WithMany()
+                .HasForeignKey(r => r.SystemStatusId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             foreach (var entry in ChangeTracker.Entries<IEntity>())
@@ -41,6 +61,6 @@ namespace NCG.HR.Data
         public DbSet<LeaveType> LeaveTypes { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<City> Cities { get; set; }
-
+        public DbSet<LeaveApplication> LeaveApplications { get; set; }
     }
 }
