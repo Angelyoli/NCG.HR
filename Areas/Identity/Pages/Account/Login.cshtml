@@ -1,0 +1,97 @@
+﻿@page
+@model LoginModel
+@{
+    ViewData["Title"] = "登录";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HR</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="~/Admin/plugins/fontawesome-free/css/all.min.css">
+    <!-- icheck bootstrap -->
+    <link rel="stylesheet" href="~/Admin/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="~/Admin/dist/css/adminlte.min.css">
+</head>
+<body class="hold-transition login-page">
+    <div class="login-box">
+        <!-- /.login-logo -->
+        <div class="card card-outline card-primary">
+            <div class="card-header text-center">
+                <a href="#" class="h1"><b>HR</b>MIS</a>
+            </div>
+            <div class="card-body">
+                <p class="login-box-msg">登入系统开始使用</p>
+
+                <form id="account" method="post">
+                    <div class="input-group mb-3">
+                        <input type="email" class="form-control" placeholder="请输入用户名" asp-for="Input.Email" />                       
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-envelope"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">                        
+                        <input asp-for="Input.Password" type="password" class="form-control" autocomplete="current-password" placeholder="请输入密码" />                        
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-lock"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="icheck-primary">
+                                <input type="checkbox" id="remember" class="form-check-input" asp-for="Input.RememberMe" />
+                                <label for="remember">
+                                    @Html.DisplayNameFor(m => m.Input.RememberMe)
+                                </label>
+                            </div>
+                        </div>
+                        <!-- /.col -->
+                        <div class="col-4">
+                            <button id="login-submit" type="submit" class="btn btn-primary btn-block">登入</button>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                </form>
+                <div>
+                    <p>
+                        <a id="forgot-password" asp-page="./ForgotPassword">忘记密码?</a>
+                    </p>
+                    <p>
+                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">注册新用户</a>
+                    </p>
+                    <p>
+                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">重新发送确认代码</a>
+                    </p>
+                </div>
+            </div>
+            <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.login-box -->
+</body>
+</html>
+@section Scripts {
+    <!-- jQuery -->
+    <script src="~/Admin/plugins/jquery/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="~/Admin/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="~/Admin/dist/js/adminlte.min.js"></script>
+
+    <partial name="_ValidationScriptsPartial" />
+}

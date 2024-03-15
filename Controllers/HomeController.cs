@@ -15,7 +15,8 @@ namespace NCG.HR.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            //return View();
+            return !this.User.Identity.IsAuthenticated ? this.Redirect("~/identity/account/login") : View();
         }
 
         public IActionResult Privacy()
