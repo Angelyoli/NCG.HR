@@ -2,12 +2,12 @@
 @model IEnumerable<IdentityRole>
 
 @{
-    ViewData["Title"] = "系统权限管理";
+    ViewData["Title"] = "系统角色管理";
 }
 
 <div class="card">
     <div class="card-header">        
-        <a asp-action="Create" class="btn btn-primary"><i class="fa fa-plus"></i>添加新权限</a>
+        <a asp-action="Create" class="btn btn-primary"><i class="fa fa-plus"></i>添加系统角色</a>
     </div>
     <!-- /.card-header -->
     <div class="card-body">
@@ -15,10 +15,10 @@
             <thead>
                 <tr>
                     <th>
-                       权限ID
+                       角色ID
                     </th>
                     <th>
-                       权限名称
+                       角色名称
                     </th>                    
                     <th></th>
                 </tr>

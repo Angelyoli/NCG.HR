@@ -2,6 +2,9 @@
 
 namespace NCG.HR.Models
 {
+    /// <summary>
+    /// 系统配置项目
+    /// </summary>
     public class SystemCode : UserActivity
     {
      

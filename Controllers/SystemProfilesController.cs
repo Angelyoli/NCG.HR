@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +7,9 @@ using NCG.HR.Models;
 
 namespace NCG.HR.Controllers
 {
+    /// <summary>
+    /// 系统权限明细管理 自引用结构
+    /// </summary>
     [Authorize]
     public class SystemProfilesController : Controller
     {

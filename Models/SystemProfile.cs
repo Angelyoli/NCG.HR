@@ -1,5 +1,8 @@
 ﻿namespace NCG.HR.Models
 {
+    /// <summary>
+    /// 系统权限
+    /// </summary>
     public class SystemProfile : UserActivity
     {
         public string Name { get; set; }

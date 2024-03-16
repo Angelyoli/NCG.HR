@@ -2,6 +2,9 @@
 
 namespace NCG.HR.Models
 {
+    /// <summary>
+    /// 系统配置明细
+    /// </summary>
     public class SystemCodeDetail : UserActivity
     {
         public int SystemCodeId { get; set; }
