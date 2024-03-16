@@ -61,6 +61,8 @@ namespace NCG.HR.Data
         public DbSet<LeaveType> LeaveTypes { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<City> Cities { get; set; }
+        public DbSet<SystemProfile> SystemProfiles { get; set; }
+
         public DbSet<LeaveApplication> LeaveApplications { get; set; }
     }
 }

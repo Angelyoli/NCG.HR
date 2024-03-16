@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using NCG.HR.Data;
 using NCG.HR.Models;
@@ -24,7 +25,9 @@ namespace NCG.HR.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            var users = await _context.Users.ToListAsync();
+            var users = await _context.Users
+                .Include(r=>r.Role)
+                .ToListAsync();
             return View(users);
         }
 
@@ -32,6 +35,7 @@ namespace NCG.HR.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
+            ViewData["RoleId"] = new SelectList(_context.Roles, "Id", "Name");
             return View();
         }
 
@@ -42,19 +46,25 @@ namespace NCG.HR.Controllers
             user.UserName = model.UserName;
             user.NormalizedUserName = model.UserName;
             user.Email = model.Email;
-            user.EmailConfirmed = true;
             user.PhoneNumber = model.PhoneNumber;
+            user.EmailConfirmed = true;
             user.PhoneNumberConfirmed = true;
+            user.FirstName = model.FirstName;
+            user.MiddleName = model.MiddleName;
+            user.LastName = model.LastName;
+            user.NationalId = model.NationalId;
+            user.RoleId = model.RoleId;
+            user.CreateOn = DateTime.Now;
+            user.CreateById = User.Identity.Name;
 
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
             {
                 return RedirectToAction("Index");
             }
-            else
-            {
-                return View(model);
-            }
+
+            ViewData["RoleId"] = new SelectList(_context.Roles, "Id", "Name",model.RoleId);
+            return View(model);
 
         }
 
