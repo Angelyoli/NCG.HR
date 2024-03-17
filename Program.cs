@@ -20,7 +20,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders()
+    .AddDefaultTokenProviders() // 解决两次认证的问题
     .AddDefaultUI(); // 解决IEmail不能注册的问题
 
 
