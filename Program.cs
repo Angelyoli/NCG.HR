@@ -21,7 +21,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders()
-    .AddDefaultUI();
+    .AddDefaultUI(); // 解决IEmail不能注册的问题
+
+
+
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddRazorPages();
