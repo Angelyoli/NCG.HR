@@ -48,7 +48,7 @@
                                         </li>
                                         <li class="dropdown-divider"></li>
                                         <li class="dropdown-item">
-                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger"><i class="fa fa-trash"></i> 删除</a>
+                                            <a asp-controller="Profiles" asp-action="UserRights" asp-route-id="@item.Id" class="btn btn-secondary"><i class="fa fa-lock"></i> 分配权限</a>
                                         </li>                                        
                                     </ul>
                                 </div>

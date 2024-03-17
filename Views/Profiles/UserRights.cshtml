@@ -1,0 +1,85 @@
+﻿@model NCG.HR.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "分配用户权限";
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <a asp-action="Create" class="btn btn-primary"><i class="fa  fa-plus"></i> 分配权限</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <form asp-action="UserGroupRights" method="post">
+                <!--角色ID-->
+                <input type="hidden" name="Id" value="@Model.RoleId" />
+                <table class="table tabble-striped table-bordered table-hover table-fixed-header">
+                    <thead class="header" style="margin: 0px auto; width: 1280px;">
+                        <tr>
+                            <th>功能组</th>
+                            <th>功能项</th>
+                            <th>操作</th>
+                            <th>授权</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Profiles != null)
+                        {
+                            @foreach (var module in Model.Profiles.Where(r => r.ProfileId is null)) // 1级权限组
+                            {
+                                <tr>
+                                    <th>@module.Name</th>
+                                    @if (module.Children.Any())
+                                    {
+                                        @foreach (var submodule in module.Children) // 2级权限
+                                        {
+                                        <tr>
+                                            <th></th>
+                                            <td>
+                                                <input type="hidden" name="RolesProfilesIds[]" value="@submodule.Id" />
+                                                    @submodule.Name
+                                            </td>
+                                        </tr>
+                                            @foreach (var action in submodule.Children) // 3级权限
+                                            {
+                                            <tr>
+                                                <th></th>
+                                                <th></th>
+                                                <th>@action.Name</th>
+                                                <td>
+                                                    <label class="">
+                                                        <input type="checkbox" name="Ids[]" value="@action.Id" />
+                                                    </label>
+                                                </td>
+                                            </tr>
+                                            }
+                                        }
+                                    }
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <div class="card-footer">
+                            <div class="clearfix">
+                                <a asp-action="Index" class="btn btn-danger push-left">返回角色权限列表</a>
+                                <input type="submit" value="分配权限" class="btn btn-primary" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
