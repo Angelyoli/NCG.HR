@@ -73,6 +73,11 @@ namespace NCG.HR.Controllers
         public async Task<IActionResult> UserGroupRights(string id, ProfileViewModel vm)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+         
+            var allrights = await _context.RoleProfiles.Where(r=>r.RoleId==id).ToListAsync();
+            _context.RoleProfiles.RemoveRange(allrights);
+            await _context.SaveChangesAsync(userId);
+
             foreach (var taskId in vm.Ids)
             {
                 var role = new RoleProfile
