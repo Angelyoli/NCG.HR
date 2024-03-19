@@ -65,6 +65,7 @@ namespace NCG.HR.Data
         public DbSet<LeaveApplication> LeaveApplications { get; set; }
         public DbSet<Audit> AuditLogs { get; set; }
         public DbSet<RoleProfile> RoleProfiles { get; set; }
+        public DbSet<Holiday> Holidays { get; set; }
 
 
         public virtual async Task<int> SaveChangesAsync(string userId = null)
@@ -76,9 +77,12 @@ namespace NCG.HR.Data
                     case EntityState.Added:
                         entry.Entity.CreatedOn = DateTime.Now;
                         entry.Entity.ModifyOn = DateTime.Now;
+                        entry.Entity.ModifyById = userId;
+                        entry.Entity.CreatedById = userId;
                         break;
                     case EntityState.Modified:
                         entry.Entity.ModifyOn = DateTime.Now;
+                        entry.Entity.ModifyById = userId;
                         break;
                 }
             }
@@ -136,7 +140,7 @@ namespace NCG.HR.Data
                 }
             }
 
-            foreach(var auditEntry in auditEntries )
+            foreach (var auditEntry in auditEntries)
             {
                 AuditLogs.Add(auditEntry.ToAudit());
             }

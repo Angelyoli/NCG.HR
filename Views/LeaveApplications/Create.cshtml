@@ -63,15 +63,19 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <input type="submit" value="Create" class="btn btn-primary" />
+                        <div class="col-md-12">
+                            <div class="card-footer">
+                                <div class="clearfix">
+                                    <a asp-action="Index" class="btn btn-danger push-left">返回请假申请列表</a>
+                                    <input type="submit" value="提交申请" class="btn btn-primary" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
-    <div>
-        <a asp-action="Index">Back to List</a>
-    </div>
+    </div>   
 </div>
 
 
