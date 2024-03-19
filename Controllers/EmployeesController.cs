@@ -10,10 +10,13 @@ namespace NCG.HR.Controllers
     public class EmployeesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private string GetUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
+        private readonly IConfiguration _configuration;
 
-        public EmployeesController(ApplicationDbContext context)
+        public EmployeesController(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         // GET: Employees
@@ -47,7 +50,7 @@ namespace NCG.HR.Controllers
             ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name");
             ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name");
             ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name");
-            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r=>r.SystemCode).Where(r=>r.SystemCode.Code=="Gender"), "Id", "Description");
+            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code == "Gender"), "Id", "Description");
             return View();
         }
 
@@ -56,8 +59,19 @@ namespace NCG.HR.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create( Employee employee)
+        public async Task<IActionResult> Create(Employee employee, IFormFile employeephoto)
         {
+            if (employee != null)
+            if (employeephoto.Length > 0)
+            {
+                var fileName = "EmployeePhoto_" + DateTime.Now.ToString("yyyymmddhhmmss") + "_" + employeephoto.FileName;
+                var path = _configuration["FileSettings:UploadFolder"];
+                var filePath=Path.Combine(path, fileName);
+                var stream = new FileStream(filePath, FileMode.Create);
+                await employeephoto.CopyToAsync(stream);
+                employee.Photo = fileName;
+            }
+
             employee.CreatedById = null;
             employee.CreatedOn = DateTime.Now;
             employee.ModifyById = null;
@@ -69,11 +83,11 @@ namespace NCG.HR.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name",employee.CountryId);
+            ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name", employee.CountryId);
             ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name", employee.CityId);
-            ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name",employee.DesignationId);
-            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name",employee.DepartmentId);
-            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code == "Gender"), "Id", "Description",employee.GenderId);
+            ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name", employee.DesignationId);
+            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", employee.DepartmentId);
+            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code == "Gender"), "Id", "Description", employee.GenderId);
             return View(employee);
         }
 
@@ -172,7 +186,7 @@ namespace NCG.HR.Controllers
             {
                 _context.Employees.Remove(employee);
             }
-           
+
             await _context.SaveChangesAsync(GetUserId);
             return RedirectToAction(nameof(Index));
         }
@@ -181,7 +195,5 @@ namespace NCG.HR.Controllers
         {
             return _context.Employees.Any(e => e.Id == id);
         }
-
-        private string GetUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
     }
 }

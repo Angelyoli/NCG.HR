@@ -46,5 +46,8 @@ namespace NCG.HR.Models
         public int? GenderId { get; set; }
         public SystemCodeDetail Gender { get; set; }
 
+        [Display(Name ="照片")]
+        public string? Photo { get; set; }
+
     }
 }

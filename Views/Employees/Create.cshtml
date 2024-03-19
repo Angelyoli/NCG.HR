@@ -10,9 +10,9 @@
 <hr />
 <div class="row">
     <div class="col-md-12">
-        <form asp-action="Create">
+        <!-- add method="post"  enctype="multipart/form-data" to upload photo -->
+        <form asp-action="Create" method="post"  enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
@@ -62,7 +62,7 @@
                         <input asp-for="Email" class="form-control" />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
-                </div>            
+                </div>
                 <div class="col-md-6">
                     <div class="form-group">
                         <label asp-for="Region" class="control-label"></label>
@@ -112,6 +112,13 @@
                         <label asp-for="Phone" class="control-label"></label>
                         <input asp-for="Phone" class="form-control" />
                         <span asp-validation-for="Phone" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Photo" class="control-label"></label>
+                        <input class="form-control" type="file" accept=".png,.jpg,.jpeg" id="photo" name="employeephoto" />
+                        <span asp-validation-for="Photo" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="col-md-6">
