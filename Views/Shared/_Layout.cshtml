@@ -210,14 +210,69 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a asp-controller="Employees" asp-action="Index" class="nav-link">
+                            <a asp-controller="#" asp-action="Index" class="nav-link">
+                                <i class="nav-icon fa fa-users"></i>
+                                <p>
+                                    工作计划
+                                    <i class="fa fa-angle-left right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a asp-controller="Employees" asp-action="Index" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>排班计划 - 待定</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Employees" asp-action="Index" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>值班计划 - 待定</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Employees" asp-action="Index" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>其他 - 待定</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a asp-controller="#" asp-action="Index" class="nav-link">
                                 <i class="nav-icon fa fa-users"></i>
                                 <p>
                                     员工管理
+                                    <i class="fa fa-angle-left right"></i>
                                 </p>
                             </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a asp-controller="Employees" asp-action="Index" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>档案管理 - 待定</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Employees" asp-action="Index" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>入职管理</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Employees" asp-action="Index" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>离职管理</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Employees" asp-action="Index" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>外派管理</p>
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
-
                         <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="nav-icon fas fa-table"></i>

@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using NCG.HR.Data;
 using NCG.HR.Models;
+using System.Security.Claims;
 
 namespace NCG.HR.Controllers
 {
@@ -41,6 +43,11 @@ namespace NCG.HR.Controllers
         // GET: Employees/Create
         public IActionResult Create()
         {
+            ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name");
+            ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name");
+            ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name");
+            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name");
+            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r=>r.SystemCode).Where(r=>r.SystemCode.Code=="Gender"), "Id", "Description");
             return View();
         }
 
@@ -58,9 +65,15 @@ namespace NCG.HR.Controllers
             if (ModelState.IsValid)
             {
                 _context.Add(employee);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(GetUserId);
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name",employee.CountryId);
+            ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name", employee.CityId);
+            ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name",employee.DesignationId);
+            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name",employee.DepartmentId);
+            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code == "Gender"), "Id", "Description",employee.GenderId);
             return View(employee);
         }
 
@@ -77,6 +90,12 @@ namespace NCG.HR.Controllers
             {
                 return NotFound();
             }
+
+            ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name", employee.CountryId);
+            ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name", employee.CityId);
+            ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name", employee.DesignationId);
+            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", employee.DepartmentId);
+            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code == "Gender"), "Id", "Description", employee.GenderId);
             return View(employee);
         }
 
@@ -85,7 +104,7 @@ namespace NCG.HR.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,EmpNo,FirstName,MiddleName,LastName,Address,PhoneNumber,Email,City,Region,PostalCode,Country,Phone,Fax,DateOfBirth,Department,CreatedById,CreatedOn,ModifyById,ModifyOn")] Employee employee)
+        public async Task<IActionResult> Edit(int id, Employee employee)
         {
             if (id != employee.Id)
             {
@@ -97,7 +116,7 @@ namespace NCG.HR.Controllers
                 try
                 {
                     _context.Update(employee);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(GetUserId);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -112,6 +131,11 @@ namespace NCG.HR.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name", employee.CountryId);
+            ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name", employee.CityId);
+            ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name", employee.DesignationId);
+            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", employee.DepartmentId);
+            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code == "Gender"), "Id", "Description", employee.GenderId);
             return View(employee);
         }
 
@@ -130,6 +154,11 @@ namespace NCG.HR.Controllers
                 return NotFound();
             }
 
+            ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name", employee.CountryId);
+            ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name", employee.CityId);
+            ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name", employee.DesignationId);
+            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", employee.DepartmentId);
+            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code == "Gender"), "Id", "Description", employee.GenderId);
             return View(employee);
         }
 
@@ -143,8 +172,8 @@ namespace NCG.HR.Controllers
             {
                 _context.Employees.Remove(employee);
             }
-
-            await _context.SaveChangesAsync();
+           
+            await _context.SaveChangesAsync(GetUserId);
             return RedirectToAction(nameof(Index));
         }
 
@@ -152,5 +181,7 @@ namespace NCG.HR.Controllers
         {
             return _context.Employees.Any(e => e.Id == id);
         }
+
+        private string GetUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
     }
 }

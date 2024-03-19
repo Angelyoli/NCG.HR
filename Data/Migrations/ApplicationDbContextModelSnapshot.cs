@@ -514,8 +514,8 @@ namespace NCG.HR.Data.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("City")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("CityId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("CountryId")
                         .HasColumnType("int");
@@ -584,6 +584,8 @@ namespace NCG.HR.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CityId");
 
                     b.HasIndex("CountryId");
 
@@ -974,6 +976,11 @@ namespace NCG.HR.Data.Migrations
 
             modelBuilder.Entity("NCG.HR.Models.Employee", b =>
                 {
+                    b.HasOne("NCG.HR.Models.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("NCG.HR.Models.Country", "Country")
                         .WithMany()
                         .HasForeignKey("CountryId")
@@ -993,6 +1000,8 @@ namespace NCG.HR.Data.Migrations
                         .WithMany()
                         .HasForeignKey("GenderId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("City");
 
                     b.Navigation("Country");
 
