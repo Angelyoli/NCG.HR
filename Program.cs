@@ -3,13 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NCG.HR.Data;
 using NCG.HR.Models;
+using NCG.HR.SqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+var isProduction = builder.Environment.IsProduction();
+builder.Services.AddSqlServerDbContext<ApplicationDbContext>(isProduction,connectionString);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // Add Identity

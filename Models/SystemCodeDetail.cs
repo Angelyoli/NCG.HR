@@ -9,8 +9,13 @@ namespace NCG.HR.Models
     {
         public int SystemCodeId { get; set; }
         public SystemCode SystemCode { get; set; }
+        [Display(Name = "系统配置编码")]
         public string Code { get; set; }
+        [Display(Name = "系统配置编码说明")]
+
         public string Description { get; set; }
+        [Display(Name = "配置组编号")]
+
         public int? OrderNo { get; set; }
     }
 }

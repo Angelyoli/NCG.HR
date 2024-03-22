@@ -46,11 +46,7 @@ namespace NCG.HR.Controllers
         // GET: Employees/Create
         public IActionResult Create()
         {
-            ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name");
-            ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name");
-            ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name");
-            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name");
-            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code == "Gender"), "Id", "Description");
+            FillViewData(null);
             return View();
         }
 
@@ -62,15 +58,15 @@ namespace NCG.HR.Controllers
         public async Task<IActionResult> Create(Employee employee, IFormFile employeephoto)
         {
             if (employee != null)
-            if (employeephoto.Length > 0)
-            {
-                var fileName = "EmployeePhoto_" + DateTime.Now.ToString("yyyymmddhhmmss") + "_" + employeephoto.FileName;
-                var path = _configuration["FileSettings:UploadFolder"];
-                var filePath=Path.Combine(path, fileName);
-                var stream = new FileStream(filePath, FileMode.Create);
-                await employeephoto.CopyToAsync(stream);
-                employee.Photo = fileName;
-            }
+                if (employeephoto.Length > 0)
+                {
+                    var fileName = "EmployeePhoto_" + DateTime.Now.ToString("yyyymmddhhmmss") + "_" + employeephoto.FileName;
+                    var path = _configuration["FileSettings:UploadFolder"];
+                    var filePath = Path.Combine(path, fileName);
+                    var stream = new FileStream(filePath, FileMode.Create);
+                    await employeephoto.CopyToAsync(stream);
+                    employee.Photo = fileName;
+                }
 
             employee.CreatedById = null;
             employee.CreatedOn = DateTime.Now;
@@ -83,11 +79,7 @@ namespace NCG.HR.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name", employee.CountryId);
-            ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name", employee.CityId);
-            ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name", employee.DesignationId);
-            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", employee.DepartmentId);
-            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code == "Gender"), "Id", "Description", employee.GenderId);
+            FillViewData(employee);
             return View(employee);
         }
 
@@ -105,11 +97,7 @@ namespace NCG.HR.Controllers
                 return NotFound();
             }
 
-            ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name", employee.CountryId);
-            ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name", employee.CityId);
-            ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name", employee.DesignationId);
-            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", employee.DepartmentId);
-            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code == "Gender"), "Id", "Description", employee.GenderId);
+            FillViewData(employee);
             return View(employee);
         }
 
@@ -145,11 +133,7 @@ namespace NCG.HR.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name", employee.CountryId);
-            ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name", employee.CityId);
-            ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name", employee.DesignationId);
-            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", employee.DepartmentId);
-            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code == "Gender"), "Id", "Description", employee.GenderId);
+            FillViewData(employee);
             return View(employee);
         }
 
@@ -168,13 +152,11 @@ namespace NCG.HR.Controllers
                 return NotFound();
             }
 
-            ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name", employee.CountryId);
-            ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name", employee.CityId);
-            ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name", employee.DesignationId);
-            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", employee.DepartmentId);
-            ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code == "Gender"), "Id", "Description", employee.GenderId);
+            FillViewData(employee);
             return View(employee);
         }
+
+
 
         // POST: Employees/Delete/5
         [HttpPost, ActionName("Delete")]
@@ -194,6 +176,27 @@ namespace NCG.HR.Controllers
         private bool EmployeeExists(int id)
         {
             return _context.Employees.Any(e => e.Id == id);
+        }
+        private void FillViewData(Employee employee)
+        {
+            if (employee == null)
+            {
+                ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name");
+                ViewData["BankId"] = new SelectList(_context.Banks, "Id", "Name");
+                ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name");
+                ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name");
+                ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name");
+                ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code.Contains("XB")), "Id", "Description");
+            }
+            else
+            {
+                ViewData["CountryId"] = new SelectList(_context.Countries, "Id", "Name", employee.CountryId);
+                ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name", employee.CityId);
+                ViewData["BankId"] = new SelectList(_context.Banks, "Id", "Name", employee.BankId);
+                ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name", employee.DesignationId);
+                ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", employee.DepartmentId);
+                ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code.Contains("XB")), "Id", "Description", employee.GenderId);
+            }
         }
     }
 }
