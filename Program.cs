@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 var isProduction = builder.Environment.IsProduction();
-builder.Services.AddSqlServerDbContext<ApplicationDbContext>(isProduction,connectionString);
+builder.Services.AddSqlServerDbContext<ApplicationDbContext>(true, connectionString);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // Add Identity
@@ -25,7 +25,6 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     .AddDefaultUI(); // 解决IEmail不能注册的问题
 
 
-
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddRazorPages();
@@ -35,6 +34,7 @@ builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+PrepareDb.PreparePopulation(app, true);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

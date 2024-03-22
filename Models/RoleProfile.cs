@@ -3,7 +3,7 @@
 namespace NCG.HR.Models
 {
     /// <summary>
-    /// 系统角色权限
+    /// 系统角色
     /// </summary>
     public class RoleProfile : UserActivity
     {

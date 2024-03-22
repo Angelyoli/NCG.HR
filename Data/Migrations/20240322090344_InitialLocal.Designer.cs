@@ -12,8 +12,8 @@ using NCG.HR.Data;
 namespace NCG.HR.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240322012447_UpdateEmployExtensionFields")]
-    partial class UpdateEmployExtensionFields
+    [Migration("20240322090344_InitialLocal")]
+    partial class InitialLocal
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
