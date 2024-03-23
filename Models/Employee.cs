@@ -9,9 +9,11 @@ namespace NCG.HR.Models
         [Display(Name = "姓")]
         public string FirstName { get; set; }
         [Display(Name = "名")]
-        public string MiddleName { get; set; }
+        public string MiddleName { get; set; } = string.Empty;
         [Display(Name = "字")]
         public string LastName { get; set; }
+        [Display(Name = "身份证号")]
+        public string IdentityNumber { get; set; }
         [Display(Name = "全名")]
         public string FullName => $"{FirstName} {MiddleName} {LastName}";
         [Display(Name = "地址")]
@@ -33,7 +35,7 @@ namespace NCG.HR.Models
         [Display(Name = "国家")]
         public int? CountryId { get; set; }
         public Country Country { get; set; }
-        [Display(Name = "城市")]
+        [Display(Name = "籍贯")]
         public int? CityId { get; set; }
         public City City { get; set; }
         [Display(Name = "部门")]
@@ -48,18 +50,62 @@ namespace NCG.HR.Models
 
         [Display(Name = "照片")]
         public string? Photo { get; set; }
+        [Display(Name = "民族")]
+        public int? NationId { get; set; }
+        public SystemCodeDetail Nation { get; set; }
+        [Display(Name = "政治面貌")]
+        public int? PoliticalStatusId { get; set; }
+        public SystemCodeDetail PoliticalStatus { get; set; }
+        [Display(Name = "入党时间")]
+        public DateTime? JoinPartyTime { get; set; }
+        [Display(Name = "身份")]
+        public int? CadreStatusId { get; set; }
+        public SystemCodeDetail CadreStatus { get; set; }
+        [Display(Name = "最高学历")]
+        public int? HighestEducationId { get; set; }
+        public SystemCodeDetail HighestEducation { get; set; }
+        [Display(Name = "毕业院校")]
+        public int? GraduatedSchoolId { get; set; }
+        public SystemCodeDetail GraduatedSchool { get; set; }
 
-        public DateTime? EmploymentDate { get; set; }
-        public int? SystemStatusId { get; set; }
-        public SystemCodeDetail SystemStatus { get; set; }
-        public DateTime? InactiveDate { get; set; }
-        public int? CauseOfInactivityId { get; set; }
-        public SystemCodeDetail CauseOfInactivity { get; set; }
-        public DateTime? TerminationDate { get; set; }
-        public int? ReasonForTerminationId { get; set; }
-        public SystemCodeDetail ReasonForTermination { get; set; }
-        public int? EmploymentTermsId { get; set; }
-        public SystemCodeDetail EmploymentTerms { get; set; }
+        [Display(Name = "毕业专业")]
+        public int? GraduatedMajorId { get; set; }
+        public SystemCodeDetail GraduatedMajor { get; set; }
+        [Display(Name = "毕业时间")]
+        public DateTime? GraduatedTime { get; set; }
+        [Display(Name = "参加工作时间")]
+        public DateTime? StartWorkTime { get; set; }
+        [Display(Name = "本单位工作时间")]
+        public DateTime? WorkInUnitTime { get; set; }
+        [Display(Name = "工龄")]
+        public int? WorkedYeas { get; set; }
+        [Display(Name = "专业职务")]
+        public int? ProfessionalQualificationId { get; set; }
+        public SystemCodeDetail ProfessionalQualification { get; set; }
+        [Display(Name = "职务取得时间")]
+        public DateTime? GetProfessionalTime { get; set; }
+        [Display(Name = "聘用职务")]
+        public int? RecruitmentPositionId { get; set; }
+        public SystemCodeDetail RecruitmentPosition { get; set; }
+        [Display(Name = "执业资格")]
+        public int? QualificationId { get; set; }
+        public SystemCodeDetail Qualification { get; set; }
+
+        [Display(Name = "合同")]
+        public string? ContractNumber { get; set; }
+        [Display(Name = "专业类别")]
+        public int? ProfessionalCategoryId { get; set; }
+        public SystemCodeDetail ProfessionalCategory { get; set; }
+        [Display(Name = "职称")]
+        public int? JobTitleId { get; set; }
+        public SystemCodeDetail JobTitle { get; set; }
+        [Display(Name = "是否全科")]
+        public bool? IsGeneral { get; set; }
+        [Display(Name = "领导职务")]
+
+        public int? leadershipPositionId { get; set; }
+        public SystemCodeDetail leadershipPosition { get; set; }
+
 
         [Display(Name = "银行")]
         public int? BankId { get; set; }
@@ -82,7 +128,7 @@ namespace NCG.HR.Models
         /// <summary>
         /// 护照号码
         /// </summary>
-        [Display(Name ="护照号码")]
+        [Display(Name = "护照号码")]
         public string? PassportNo { get; set; }
 
     }

@@ -16,6 +16,6 @@ namespace NCG.HR.Models
         public string Description { get; set; }
         [Display(Name = "配置组编号")]
 
-        public int? OrderNo { get; set; }
+        public string? OrderNo { get; set; }
     }
 }

@@ -16,6 +16,6 @@ namespace NCG.HR.Models
         public ICollection<SystemProfile> Children { get; set; }
         [Display(Name = "组编号")]
 
-        public int? Order { get; set; }
+        public string? Order { get; set; }
     }
 }

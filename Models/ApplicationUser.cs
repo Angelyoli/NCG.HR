@@ -1,10 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace NCG.HR.Models
 {
     public class ApplicationUser : IdentityUser
     {
+        [Display(Name = "姓")]
+
         public string? FirstName { get; set; }
+        [Display(Name = "名")]
+
         public string? MiddleName { get; set; }
         public string? LastName { get; set; }
         public string? NationalId { get; set; }
@@ -16,5 +21,8 @@ namespace NCG.HR.Models
         public DateTime? PasswordChangedOn { get; set; }
         public string? RoleId { get; set; }
         public IdentityRole? Role { get; set; }
+
+        [Display(Name = "照片")]
+        public string? Photo { get; set; }
     }
 }
