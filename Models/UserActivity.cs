@@ -15,12 +15,17 @@ namespace NCG.HR.Models
         public string ModifyById { get; set; }
         [Display(Name = "修改时间")]
         public DateTime ModifyOn { get; set; }
-        [Display(Name = "启用状态")]
+        [Display(Name = "存储内容")]
         public string State { get; set; } = string.Empty;
         [Display(Name = "实时状态")]
         public string Status { get; set; } = string.Empty;
         [Display(Name = "类型")]
         public string Type { get; set; } = string.Empty;
+        public string Extension1 { get; set; }
+        public string Extension2 { get; set; }
+        public string Extension3 { get; set; }
+        public string Extension4 { get; set; }
+        public string Extension5 { get; set; }
     }
 
     public abstract class ApprovalActivity : UserActivity

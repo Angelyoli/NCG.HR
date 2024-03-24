@@ -47,6 +47,10 @@ namespace NCG.HR.Models
         [Display(Name = "性别")]
         public int? GenderId { get; set; }
         public SystemCodeDetail Gender { get; set; }
+        [Display(Name = "在职状态")]
+
+        public int? ActiveStatusId { get; set; }
+        public SystemCodeDetail ActiveStatus { get; set; }
 
         [Display(Name = "照片")]
         public string? Photo { get; set; }

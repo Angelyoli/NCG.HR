@@ -10,7 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 var isProduction = builder.Environment.IsProduction();
-builder.Services.AddSqlServerDbContext<ApplicationDbContext>(true, connectionString);
+isProduction = true;
+builder.Services.AddSqlServerDbContext<ApplicationDbContext>(isProduction, connectionString);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // Add Identity
@@ -34,7 +35,7 @@ builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
-PrepareDb.PreparePopulation(app, true);
+PrepareDb.PreparePopulation(app, isProduction);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
