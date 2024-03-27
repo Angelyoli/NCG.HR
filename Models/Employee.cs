@@ -136,4 +136,112 @@ namespace NCG.HR.Models
         public string? PassportNo { get; set; }
 
     }
+
+    public class EmployeeImportEntity
+    {
+
+        public string EmpNo { get; set; }
+
+        public string FirstName { get; set; }
+        public string MiddleName { get; set; } = string.Empty;
+
+        public string LastName { get; set; }
+
+        public string IdentityNumber { get; set; }
+
+
+        public string Address { get; set; }
+
+        public string PhoneNumber { get; set; }
+
+        public string Email { get; set; }
+
+        public string Region { get; set; }
+
+        public string PostalCode { get; set; }
+
+        public string Phone { get; set; }
+
+        public string Fax { get; set; }
+
+        public string DateOfBirth { get; set; }
+
+        public string CountryId { get; set; }
+
+
+        public string CityId { get; set; }
+        public string DepartmentId { get; set; }
+
+        public string DesignationId { get; set; }
+
+        public string GenderId { get; set; }
+
+        public string ActiveStatusId { get; set; }
+
+        public string Photo { get; set; }
+        public string NationId { get; set; }
+        public string PoliticalStatusId { get; set; }
+        public string? JoinPartyTime { get; set; }
+        [Display(Name = "身份")]
+        public string? CadreStatusId { get; set; }
+        public string HighestEducationId { get; set; }
+
+        public string GraduatedSchoolId { get; set; }
+
+        public string GraduatedMajorId { get; set; }
+
+        public string? GraduatedTime { get; set; }
+        [Display(Name = "参加工作时间")]
+        public string? StartWorkTime { get; set; }
+        [Display(Name = "本单位工作时间")]
+        public string? WorkInUnitTime { get; set; }
+        [Display(Name = "工龄")]
+        public int? WorkedYeas { get; set; }
+        [Display(Name = "专业职务")]
+        public string ProfessionalQualificationId { get; set; }
+
+        public string? GetProfessionalTime { get; set; }
+        [Display(Name = "聘用职务")]
+        public string RecruitmentPositionId { get; set; }
+
+        public string QualificationId { get; set; }
+
+
+        [Display(Name = "合同")]
+        public string? ContractNumber { get; set; }
+        [Display(Name = "专业类别")]
+        public string ProfessionalCategoryId { get; set; }
+
+        public string JobTitleId { get; set; }
+
+        public bool? IsGeneral { get; set; }
+
+
+        public string leadershipPositionId { get; set; }
+        public SystemCodeDetail leadershipPosition { get; set; }
+
+
+
+        public string BankId { get; set; }
+
+        public string? BankAccountNo { get; set; }
+        /// <summary>
+        /// 国际银行账户
+        /// </summary>
+        public string? IBAN { get; set; }
+        /// <summary>
+        /// 银行国际代码
+        /// </summary>
+        public string? SWIFTCode { get; set; }
+        /// <summary>
+        /// 国家社保号码
+        /// </summary>
+        public string? NSSFNO { get; set; }
+        public string? KRAPIN { get; set; }
+        /// <summary>
+        /// 护照号码
+        /// </summary>
+        [Display(Name = "护照号码")]
+        public string? PassportNo { get; set; }
+    }
 }

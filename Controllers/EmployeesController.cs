@@ -186,7 +186,7 @@ namespace NCG.HR.Controllers
                 ViewData["CityId"] = new SelectList(_context.Cities, "Id", "Name");
                 ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name");
                 ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name");
-                ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code.Contains("XB")), "Id", "Description");
+                ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code.Contains("SC-GC")), "Id", "Description");
             }
             else
             {
@@ -195,7 +195,7 @@ namespace NCG.HR.Controllers
                 ViewData["BankId"] = new SelectList(_context.Banks, "Id", "Name", employee.BankId);
                 ViewData["DesignationId"] = new SelectList(_context.Designations, "Id", "Name", employee.DesignationId);
                 ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", employee.DepartmentId);
-                ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code.Contains("XB")), "Id", "Description", employee.GenderId);
+                ViewData["GenderId"] = new SelectList(_context.SystemCodeDetails.Include(r => r.SystemCode).Where(r => r.SystemCode.Code.Contains("SC-GC")), "Id", "Description", employee.GenderId);
             }
         }
     }
