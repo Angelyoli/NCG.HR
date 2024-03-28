@@ -22,7 +22,8 @@ namespace NCG.HR.Controllers
         // GET: Employees
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Employees.ToListAsync());
+            var list = await _context.Employees.ToListAsync();
+            return View(list);
         }
 
         // GET: Employees/Details/5

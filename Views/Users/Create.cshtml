@@ -52,7 +52,8 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label asp-for="Password" class="control-label"></label>
-                                <input asp-for="Password" class="form-control" />
+                                <input asp-for="Password" class="form-control" aria-required="true"
+                                    autocomplete="new-password" placeholder="请输入密码" />
                                 <span asp-validation-for="Password" class="text-danger"></span>
                             </div>
                         </div>
@@ -90,7 +91,7 @@
                 </form>
             </div>
         </div>
-    </div>  
+    </div>
 </div>
 
 

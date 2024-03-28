@@ -220,11 +220,11 @@ namespace NCG.HR.Data.Migrations
                 type: "nvarchar(max)",
                 nullable: true);
 
-            // migrationBuilder.AddColumn<int>(
-            //     name: "ActiveStatusId",
-            //     table: "Employees",
-            //     type: "int",
-            //     nullable: true);
+            migrationBuilder.AddColumn<int>(
+                name: "ActiveStatusId",
+                table: "Employees",
+                type: "int",
+                nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "Extension1",
@@ -436,18 +436,18 @@ namespace NCG.HR.Data.Migrations
                 type: "nvarchar(max)",
                 nullable: true);
 
-            // migrationBuilder.CreateIndex(
-            //     name: "IX_Employees_ActiveStatusId",
-            //     table: "Employees",
-            //     column: "ActiveStatusId");
+            migrationBuilder.CreateIndex(
+                name: "IX_Employees_ActiveStatusId",
+                table: "Employees",
+                column: "ActiveStatusId");
 
-            // migrationBuilder.AddForeignKey(
-            //     name: "FK_Employees_SystemCodeDetails_ActiveStatusId",
-            //     table: "Employees",
-            //     column: "ActiveStatusId",
-            //     principalTable: "SystemCodeDetails",
-            //     principalColumn: "Id",
-            //     onDelete: ReferentialAction.Restrict);
+            migrationBuilder.AddForeignKey(
+                name: "FK_Employees_SystemCodeDetails_ActiveStatusId",
+                table: "Employees",
+                column: "ActiveStatusId",
+                principalTable: "SystemCodeDetails",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
         }
 
         /// <inheritdoc />

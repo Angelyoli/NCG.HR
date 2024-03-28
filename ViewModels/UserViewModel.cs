@@ -8,10 +8,11 @@ namespace NCG.HR.ViewModels
         public int Id { get; set; }
         [Display(Name = "用户名")]
         public string UserName { get; set; }
-        [Display(Name ="电子邮箱")]
+        [Display(Name = "电子邮箱")]
         public string Email { get; set; }
+        [DataType(DataType.Password)]
         public string Password { get; set; }
-        [Display(Name ="姓")]
+        [Display(Name = "姓")]
         public string FirstName { get; set; }
         public string MiddleName { get; set; }
         [Display(Name = "名")]

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using NCG.HR.Data;
 using NCG.HR.Models;
 namespace NCG.HR.SqlServer;
@@ -28,17 +29,15 @@ public static class PrepareDb
         {
             Console.WriteLine("--> We are seeding data...");
             // Initial SystemCode Settings
-            FeedSystemCodes(appDbContext);
             FeedCountryCodes(appDbContext);
             FeedCityCodes(appDbContext);
-            FeedSystemSettings(appDbContext);
             FeedDepartments(appDbContext);
             FeedLeaveTypes(appDbContext);
             FeedBanks(appDbContext);
-            FeedGenders(appDbContext);
             FeedDesignations(appDbContext);
-            appDbContext.SaveChanges();
-
+            FeedSystemCodes(appDbContext);
+            FeedSystemSettings(appDbContext);
+            FeedGenders(appDbContext);
             FeedEmployees(appDbContext);
         }
         else Console.WriteLine("--> We already have data");
@@ -46,6 +45,7 @@ public static class PrepareDb
 
     private static void FeedEmployees(ApplicationDbContext appDbContext)
     {
+        #region dbInitial
         var CityCode = appDbContext.Cities;
         var CountryCode = appDbContext.Countries;
         var DepartmentCode = appDbContext.Departments;
@@ -71,10 +71,142 @@ public static class PrepareDb
         var SystemCode_ProfessionalCategory = appDbContext.SystemCodeDetails.Where(r => r.Code.Contains("SC-PC-"));
         var SystemCode_JobTitle = appDbContext.SystemCodeDetails.Where(r => r.Code.Contains("SC-JT-"));
         var SystemCode_leadershipPosition = appDbContext.SystemCodeDetails.Where(r => r.Code.Contains("SC-LP-"));
+        #endregion
+
+        var list = GetEmployees();
+        var countryId = appDbContext.Countries.FirstOrDefault().Id;
+        foreach (var item in list)
+        {
+            //插入新的City
+            if (!string.IsNullOrEmpty(item.CityId))
+            {
+                if (!CityCode.Any(r => r.Name == item.CityId))
+                {
+                    var code = "CC-";
+                    // 获取最新的code
+                    var number = CityCode.OrderByDescending(r => r.Code).FirstOrDefault();
+                    if (null == number)
+                        code += 1.ToString("D6");
+                    else
+                    {
+                        var index = int.Parse(number.Code.Substring(3)) + 1;
+                        code += index.ToString("D6");
+                    }
+                    var city = new City { CountryId = countryId, Name = item.CityId, Code = code };
+                    appDbContext.Cities.Add(city);
+                    appDbContext.SaveChanges();
+                }
+            }
+            //插入新的民族
+            if (!string.IsNullOrEmpty(item.NationId))
+            {
+                if (!SystemCode_Nation.Any(r => r.Description == item.NationId))
+                {
+                    var code = "SC-NA-";
+                    var codeId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-NA").Id;
+
+                    // 获取最新的code
+                    var number = SystemCode_Nation.OrderByDescending(r => r.Code).FirstOrDefault();
+                    if (null == number)
+                        code += 1.ToString("D6");
+                    else
+                    {
+                        var index = int.Parse(number.Code.Substring(6)) + 1;
+                        code += index.ToString("D6");
+                    }
+                    var temp = new SystemCodeDetail { Description = item.NationId, Code = code, SystemCodeId = codeId };
+                    appDbContext.SystemCodeDetails.Add(temp);
+                    appDbContext.SaveChanges();
+                }
+            }
+            //插入新的学校
+            if (!string.IsNullOrEmpty(item.GraduatedSchoolId))
+            {
+                if (!SystemCode_GraduatedSchool.Any(r => r.Description == item.GraduatedSchoolId))
+                {
+                    var code = "SC-GS-";
+                    var codeId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-GS").Id;
+
+                    // 获取最新的code
+                    var number = SystemCode_GraduatedSchool.OrderByDescending(r => r.Code).FirstOrDefault();
+                    if (null == number)
+                        code += 1.ToString("D6");
+                    else
+                    {
+                        var index = int.Parse(number.Code.Substring(6)) + 1;
+                        code += index.ToString("D6");
+                    }
+                    var temp = new SystemCodeDetail { Description = item.GraduatedSchoolId, Code = code, SystemCodeId = codeId };
+                    appDbContext.SystemCodeDetails.Add(temp);
+                    appDbContext.SaveChanges();
+                }
+            }
+            //插入新的专业
+            if (!string.IsNullOrEmpty(item.GraduatedMajorId))
+            {
+                if (!SystemCode_GraduatedMajor.Any(r => r.Description == item.GraduatedMajorId))
+                {
+                    var code = "SC-GM-";
+                    var codeId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-GM").Id;
+                    // 获取最新的code
+                    var number = SystemCode_GraduatedMajor.OrderByDescending(r => r.Code).FirstOrDefault();
+                    if (null == number)
+                        code += 1.ToString("D6");
+                    else
+                    {
+                        var index = int.Parse(number.Code.Substring(6)) + 1;
+                        code += index.ToString("D6");
+                    }
+                    var temp = new SystemCodeDetail { Description = item.GraduatedMajorId, Code = code, SystemCodeId = codeId };
+                    appDbContext.SystemCodeDetails.Add(temp);
+                    appDbContext.SaveChanges();
+                }
+            }
+        }
+
+        foreach (var item in list)
+        {
+            var employee = new Employee();
+
+            employee.EmpNo = item.EmpNo;
+            employee.CountryId = countryId;
+            employee.DepartmentId = string.IsNullOrEmpty(item.DepartmentId) ? null : DepartmentCode.FirstOrDefault(r => r.Name == item.DepartmentId).Id;
+            employee.FirstName = item.FirstName.Substring(0, 1);
+            employee.MiddleName = item.FirstName.Substring(1);
+            employee.GenderId = string.IsNullOrEmpty(item.GenderId) ? null : SystemCode_GenderCode.FirstOrDefault(r => r.Description.Contains(item.GenderId)).Id;
+            employee.IdentityNumber = item.IdentityNumber;
+            employee.DateOfBirth = Convert.ToDateTime(item.DateOfBirth);
+            employee.GraduatedMajorId = string.IsNullOrEmpty(item.GraduatedMajorId) ? null : SystemCode_GraduatedMajor.FirstOrDefault(r => r.Description == item.GraduatedMajorId).Id;
+            employee.GraduatedTime = string.IsNullOrEmpty(item.GraduatedTime) ? null : Convert.ToDateTime(item.GraduatedTime);
+            employee.StartWorkTime = string.IsNullOrEmpty(item.StartWorkTime) ? null : Convert.ToDateTime(item.StartWorkTime);
+            employee.WorkInUnitTime = string.IsNullOrEmpty(item.WorkInUnitTime) ? null : Convert.ToDateTime(item.WorkInUnitTime);
+            employee.ProfessionalQualificationId = string.IsNullOrEmpty(item.ProfessionalQualificationId) ? null : SystemCode_ProfessionalQualification.FirstOrDefault(r => r.Description == item.ProfessionalQualificationId).Id;
+            employee.GetProfessionalTime = string.IsNullOrEmpty(item.GetProfessionalTime) ? null : Convert.ToDateTime(item.GetProfessionalTime);
+            employee.RecruitmentPositionId = string.IsNullOrEmpty(item.RecruitmentPositionId) ? null : SystemCode_RecruitmentPosition.FirstOrDefault(r => r.Description == item.RecruitmentPositionId).Id;
+            employee.QualificationId = string.IsNullOrEmpty(item.QualificationId) ? null : SystemCode_Qualification.FirstOrDefault(r => r.Description == item.QualificationId).Id; ;
+            employee.ProfessionalCategoryId = string.IsNullOrEmpty(item.ProfessionalCategoryId) ? null : SystemCode_ProfessionalCategory.FirstOrDefault(r => r.Description == item.ProfessionalCategoryId).Id;
+            employee.JobTitleId = string.IsNullOrEmpty(item.JobTitleId) ? null : SystemCode_JobTitle.FirstOrDefault(r => r.Description == item.JobTitleId).Id;
+            employee.IsGeneral = true;
+            employee.NationId = string.IsNullOrEmpty(item.NationId) ? null : SystemCode_Nation.FirstOrDefault(r => r.Description == item.NationId).Id;
+            employee.PhoneNumber = item.PhoneNumber;
+            employee.Phone = item.PhoneNumber;
+            employee.PoliticalStatusId = string.IsNullOrEmpty(item.PoliticalStatusId) ? null : SystemCode_PoliticalStatus.FirstOrDefault(r => r.Description == item.PoliticalStatusId).Id;
+            employee.JoinPartyTime = string.IsNullOrEmpty(item.JoinPartyTime) ? null : Convert.ToDateTime(item.JoinPartyTime);
+            employee.CadreStatusId = string.IsNullOrEmpty(item.CadreStatusId) ? null : SystemCode_CadreStatus.FirstOrDefault(r => r.Description == item.CadreStatusId).Id;
+            employee.HighestEducationId = string.IsNullOrEmpty(item.HighestEducationId) ? null : SystemCode_HighestEducation.FirstOrDefault(r => r.Description == item.HighestEducationId).Id;
+            employee.GraduatedSchoolId = string.IsNullOrEmpty(item.GraduatedSchoolId) ? null : SystemCode_GraduatedSchool.FirstOrDefault(r => r.Description == item.GraduatedSchoolId).Id;
+            employee.CityId = string.IsNullOrEmpty(item.CityId) ? null : CityCode.FirstOrDefault(r => r.Name == item.CityId).Id;
+
+            appDbContext.Employees.Add(employee);
+            Console.WriteLine($"Name is : {employee.FirstName}");
+        }
+        appDbContext.SaveChanges();
+    }
 
 
-        var list = new List<EmployeeImportEntity>();
-        list.AddRange(
+    private static EmployeeImportEntity[] GetEmployees()
+    {
+        return new[]{
           new EmployeeImportEntity { EmpNo = "EN-000001", DepartmentId = "总务科", FirstName = "陈万军", GenderId = "男", IdentityNumber = "510122196508258311", DateOfBirth = "1965-08-25", CityId = "四川双流", NationId = "汉", PhoneNumber = "13981738383", PoliticalStatusId = "", JoinPartyTime = "", CadreStatusId = "干部", HighestEducationId = "中专", GraduatedSchoolId = "四川省成都卫生学校", GraduatedMajorId = "中西医结合", GraduatedTime = "", StartWorkTime = "1983-06-01", WorkInUnitTime = "1997-04-18", ProfessionalQualificationId = "中医士", GetProfessionalTime = "", RecruitmentPositionId = "中医士", QualificationId = "执业助理医师", ProfessionalCategoryId = "中医", JobTitleId = "初级", IsGeneral = true },
 new EmployeeImportEntity { EmpNo = "EN-000002", DepartmentId = "计免科", FirstName = "吴凌艳", GenderId = "女", IdentityNumber = "512924197606051325", DateOfBirth = "1976-06-05", CityId = "四川双流", NationId = "汉", PhoneNumber = "13060055506", PoliticalStatusId = "", JoinPartyTime = "", CadreStatusId = "干部", HighestEducationId = "大专(在职）", GraduatedSchoolId = "成都中医药大学", GraduatedMajorId = "护理", GraduatedTime = "", StartWorkTime = "1995-10-01", WorkInUnitTime = "2000-11-01", ProfessionalQualificationId = "主管护师", GetProfessionalTime = "", RecruitmentPositionId = "主管护师", QualificationId = "执业护士", ProfessionalCategoryId = "护理", JobTitleId = "中级", IsGeneral = true },
 new EmployeeImportEntity { EmpNo = "EN-000003", DepartmentId = "中医科", FirstName = "杨树明", GenderId = "男", IdentityNumber = "510122196505164117", DateOfBirth = "1965-05-16", CityId = "四川双流", NationId = "汉", PhoneNumber = "13908203238", PoliticalStatusId = "中共党员", JoinPartyTime = "2008-10-31", CadreStatusId = "干部", HighestEducationId = "大专(在职）", GraduatedSchoolId = "泸州医学院", GraduatedMajorId = "中西医结合", GraduatedTime = "", StartWorkTime = "1983-08-01", WorkInUnitTime = "1983-08-01", ProfessionalQualificationId = "中医师", GetProfessionalTime = "", RecruitmentPositionId = "中医师", QualificationId = "执业医师", ProfessionalCategoryId = "中医", JobTitleId = "初级", IsGeneral = true },
@@ -223,29 +355,8 @@ new EmployeeImportEntity { EmpNo = "EN-000147", DepartmentId = "全科", FirstNa
 new EmployeeImportEntity { EmpNo = "EN-000148", DepartmentId = "护理部", FirstName = "谢菲", GenderId = "女", IdentityNumber = "510122200006190029", DateOfBirth = "2000-06-19", CityId = "四川双流", NationId = "汉", PhoneNumber = "18381056083", PoliticalStatusId = "共产党员", JoinPartyTime = "", CadreStatusId = "", HighestEducationId = "大专", GraduatedSchoolId = "广安职业技术学院", GraduatedMajorId = "护理", GraduatedTime = "", StartWorkTime = "2022-12-12", WorkInUnitTime = "2022-12-12", ProfessionalQualificationId = "护士", GetProfessionalTime = "", RecruitmentPositionId = "护士", QualificationId = "执业护士", ProfessionalCategoryId = "护理", JobTitleId = "初级", IsGeneral = true },
 new EmployeeImportEntity { EmpNo = "EN-000149", DepartmentId = "中医科", FirstName = "刘家旭", GenderId = "男", IdentityNumber = "511321199309150016", DateOfBirth = "1993-09-15", CityId = "四川成都", NationId = "汉", PhoneNumber = "17738760563", PoliticalStatusId = "", JoinPartyTime = "", CadreStatusId = "", HighestEducationId = "本科(在职）", GraduatedSchoolId = "成都中医药大学", GraduatedMajorId = "康复治疗学", GraduatedTime = "", StartWorkTime = "2022-12-12", WorkInUnitTime = "2023-01-13", ProfessionalQualificationId = "康复治疗师", GetProfessionalTime = "", RecruitmentPositionId = "康复治疗师", QualificationId = "康复技师", ProfessionalCategoryId = "技师", JobTitleId = "初级", IsGeneral = true },
 new EmployeeImportEntity { EmpNo = "EN-000150", DepartmentId = "儿保科", FirstName = "殷晓丽", GenderId = "女", IdentityNumber = "510107198707311264", DateOfBirth = "1987-07-31", CityId = "四川成都", NationId = "汉", PhoneNumber = "17740204330", PoliticalStatusId = "", JoinPartyTime = "", CadreStatusId = "", HighestEducationId = "本科", GraduatedSchoolId = "川北医学院", GraduatedMajorId = "临床医学", GraduatedTime = "", StartWorkTime = "2022-12-12", WorkInUnitTime = "2023-01-17", ProfessionalQualificationId = "主治医师", GetProfessionalTime = "", RecruitmentPositionId = "主治医师", QualificationId = "执业医师", ProfessionalCategoryId = "临床", JobTitleId = "中级", IsGeneral = true },
-new EmployeeImportEntity { EmpNo = "EN-000151", DepartmentId = "公卫科", FirstName = "冯子豪", GenderId = "男", IdentityNumber = "510104199912074873", DateOfBirth = "1999-12-07", CityId = "四川成都", NationId = "汉族", PhoneNumber = "17608076838", PoliticalStatusId = "团员", JoinPartyTime = "", CadreStatusId = "", HighestEducationId = "大专", GraduatedSchoolId = "四川农业大学", GraduatedMajorId = "药学", GraduatedTime = "", StartWorkTime = "2022-11-01", WorkInUnitTime = "2023-06-07", ProfessionalQualificationId = "药剂士", GetProfessionalTime = "", RecruitmentPositionId = "药剂士", QualificationId = "药剂士", ProfessionalCategoryId = "药学", JobTitleId = "初级", IsGeneral = true },
-
-        );
-
-
-
-
-    }
-
-    private static void FeedSystemCodes(ApplicationDbContext appDbContext)
-    {
-        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-GC", Description = "性别" });
-        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-PQ", Description = "专业职务" });
-        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-SA", Description = "系统状态" });
-        // appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-PQ", Description = "专业职务" });
-        // appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-PQ", Description = "专业职务" });
-        // appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-PQ", Description = "专业职务" });
-        // appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-PQ", Description = "专业职务" });
-        // appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-PQ", Description = "专业职务" });
-        // appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-PQ", Description = "专业职务" });
-        // appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-PQ", Description = "专业职务" });
-
-        appDbContext.SaveChanges();
+new EmployeeImportEntity { EmpNo = "EN-000151", DepartmentId = "公卫科", FirstName = "冯子豪", GenderId = "男", IdentityNumber = "510104199912074873", DateOfBirth = "1999-12-07", CityId = "四川成都", NationId = "汉族", PhoneNumber = "17608076838", PoliticalStatusId = "团员", JoinPartyTime = "", CadreStatusId = "", HighestEducationId = "大专", GraduatedSchoolId = "四川农业大学", GraduatedMajorId = "药学", GraduatedTime = "", StartWorkTime = "2022-11-01", WorkInUnitTime = "2023-06-07", ProfessionalQualificationId = "药剂士", GetProfessionalTime = "", RecruitmentPositionId = "药剂士", QualificationId = "药剂士", ProfessionalCategoryId = "药学", JobTitleId = "初级", IsGeneral = true }
+};
     }
 
     private static void FeedDesignations(ApplicationDbContext appDbContext)
@@ -254,15 +365,7 @@ new EmployeeImportEntity { EmpNo = "EN-000151", DepartmentId = "公卫科", Firs
              new Designation { Code = "DSC-000001", Description = "科室主任", Name = "科室主任" },
              new Designation { Code = "DSC-000002", Description = "主治医生", Name = "主治医生" }
          );
-    }
-
-    private static void FeedGenders(ApplicationDbContext appDbContext)
-    {
-        var code = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-GC");
-        appDbContext.SystemCodeDetails.AddRange(
-            new SystemCodeDetail { Code = "SC-GC-000001", Description = "男性", OrderNo = "SC-GC-1", SystemCodeId = code.Id },
-            new SystemCodeDetail { Code = "SC-GC-000002", Description = "女性", OrderNo = "SC-GC-2", SystemCodeId = code.Id }
-        );
+        appDbContext.SaveChanges();
     }
 
     private static void FeedBanks(ApplicationDbContext appDbContext)
@@ -287,6 +390,7 @@ new EmployeeImportEntity { EmpNo = "EN-000151", DepartmentId = "公卫科", Firs
             new Bank { Code = "CDB", Name = "国家开发银行", Description = "China Development Bank)" },
             new Bank { Code = "The Export-Import Bank of China", Name = "中国进出口银行", Description = "" },
             new Bank { Code = "ADBC", Name = "中国农业发展银行", Description = "Agricultural Development Bank of China)。" });
+        appDbContext.SaveChanges();
     }
 
     private static void FeedLeaveTypes(ApplicationDbContext appDbContext)
@@ -299,6 +403,7 @@ new EmployeeImportEntity { EmpNo = "EN-000151", DepartmentId = "公卫科", Firs
             new LeaveType { Code = "LT-000005", Name = "年假", Description = "年假" },
             new LeaveType { Code = "LT-000006", Name = "调休", Description = "调休" },
             new LeaveType { Code = "LT-000007", Name = "外出", Description = "外出" });
+        appDbContext.SaveChanges();
     }
 
     private static void FeedDepartments(ApplicationDbContext appDbContext)
@@ -344,12 +449,14 @@ new EmployeeImportEntity { EmpNo = "EN-000151", DepartmentId = "公卫科", Firs
             new Department { Name = "九江", Code = "DC-000038" },
             new Department { Name = "彭镇", Code = "DC-000039" },
             new Department { Name = "金桥", Code = "DC-000040" });
+        appDbContext.SaveChanges();
     }
 
     private static void FeedCityCodes(ApplicationDbContext appDbContext)
     {
         var country = appDbContext.Countries.FirstOrDefault();
-        appDbContext.Cities.Add(new City { Name = "四川省成都市", Code = "CC-SC-CD", CountryId = country.Id });
+        appDbContext.Cities.Add(new City { Name = "四川省成都市", Code = "CC-000001", CountryId = country.Id });
+        appDbContext.SaveChanges();
     }
 
     private static void FeedCountryCodes(ApplicationDbContext appDbContext)
@@ -358,208 +465,281 @@ new EmployeeImportEntity { EmpNo = "EN-000151", DepartmentId = "公卫科", Firs
         appDbContext.SaveChanges();
     }
 
+    private static void FeedGenders(ApplicationDbContext appDbContext)
+    {
+        var code = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-GC");
+        appDbContext.SystemCodeDetails.AddRange(
+            new SystemCodeDetail { Code = "SC-GC-000001", Description = "男性", OrderNo = "SC-GC-1", SystemCodeId = code.Id },
+            new SystemCodeDetail { Code = "SC-GC-000002", Description = "女性", OrderNo = "SC-GC-2", SystemCodeId = code.Id }
+        );
+        appDbContext.SaveChanges();
+    }
+
+
+    private static void FeedSystemCodes(ApplicationDbContext appDbContext)
+    {
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-GC", Description = "性别" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-PQ", Description = "专业职务" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-RP", Description = "聘用职务" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-QA", Description = "执业资格" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-PC", Description = "专业类别" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-JT", Description = "职称" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-LP", Description = "领导职务" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-GS", Description = "毕业院校" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-GM", Description = "毕业专业" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-PS", Description = "政治面貌" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-CS", Description = "身份" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-HS", Description = "最高学历" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-AS", Description = "在职状态" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-SA", Description = "系统状态" });
+        appDbContext.SystemCodes.Add(new SystemCode { Code = "SC-NA", Description = "民族" });
+
+        appDbContext.SaveChanges();
+    }
+
     private static void FeedSystemSettings(ApplicationDbContext appDbContext)
     {
+        #region  GET SYSTEM CODE
+        var PQId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-PQ").Id;
+        var RPId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-RP").Id;
+        var QAId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-QA").Id;
+        var PCId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-PC").Id;
+        var JTId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-JT").Id;
+        var LPId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-LP").Id;
+        var GSId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-GS").Id;
+        var GMId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-GM").Id;
+        var PSId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-PS").Id;
+        var CSId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-CS").Id;
+        var HSId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-HS").Id;
+        var ASId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-AS").Id;
+        var SAId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-SA").Id;
+        var NAId = appDbContext.SystemCodes.FirstOrDefault(r => r.Code == "SC-NA").Id;
+        #endregion GET SYSTEM CODE
         appDbContext.SystemCodeDetails.AddRange(
-            new SystemCodeDetail { Description = "中医士", Code = "SC-PQ-000001" },
-            new SystemCodeDetail { Description = "主管护师", Code = "SC-PQ-000002" },
-            new SystemCodeDetail { Description = "中医师", Code = "SC-PQ-000003" },
-            new SystemCodeDetail { Description = "主治中医师", Code = "SC-PQ-000004" },
-            new SystemCodeDetail { Description = "主治医师", Code = "SC-PQ-000005" },
-            new SystemCodeDetail { Description = "副主任医师", Code = "SC-PQ-000006" },
-            new SystemCodeDetail { Description = "医士", Code = "SC-PQ-000007" },
-            new SystemCodeDetail { Description = "医师", Code = "SC-PQ-000008" },
-            new SystemCodeDetail { Description = "药剂师", Code = "SC-PQ-000009" },
-            new SystemCodeDetail { Description = "护师", Code = "SC-PQ-000010" },
-            new SystemCodeDetail { Description = "检验师", Code = "SC-PQ-000011" },
-            new SystemCodeDetail { Description = "药剂士", Code = "SC-PQ-000012" },
-            new SystemCodeDetail { Description = "基层副主任医师", Code = "SC-PQ-000013" },
-            new SystemCodeDetail { Description = "主管中药师", Code = "SC-PQ-000014" },
-            new SystemCodeDetail { Description = "副主任护师", Code = "SC-PQ-000015" },
-            new SystemCodeDetail { Description = "心理咨询师", Code = "SC-PQ-000016" },
-            new SystemCodeDetail { Description = "基层副主任中医师", Code = "SC-PQ-000017" },
-            new SystemCodeDetail { Description = "主管技师", Code = "SC-PQ-000018" },
-            new SystemCodeDetail { Description = "基层主治中医师", Code = "SC-PQ-000019" },
-            new SystemCodeDetail { Description = "主管药剂师", Code = "SC-PQ-000020" },
-            new SystemCodeDetail { Description = "主管检验师", Code = "SC-PQ-000021" },
-            new SystemCodeDetail { Description = "护士", Code = "SC-PQ-000022" },
-            new SystemCodeDetail { Description = "基层主管护师", Code = "SC-PQ-000023" },
-            new SystemCodeDetail { Description = "基层主治医师", Code = "SC-PQ-000024" },
-            new SystemCodeDetail { Description = "康复治疗师", Code = "SC-PQ-000025" },
-            new SystemCodeDetail { Description = "检验士", Code = "SC-PQ-000026" },
-            new SystemCodeDetail { Description = "助理医师", Code = "SC-PQ-000027" },
-            new SystemCodeDetail { Description = "主任中药师", Code = "SC-PQ-000028" },
-            new SystemCodeDetail { Description = "中医士", Code = "SC-RP-000001" },
-            new SystemCodeDetail { Description = "主管护师", Code = "SC-RP-000002" },
-            new SystemCodeDetail { Description = "中医师", Code = "SC-RP-000003" },
-            new SystemCodeDetail { Description = "主治中医师", Code = "SC-RP-000004" },
-            new SystemCodeDetail { Description = "主治医师", Code = "SC-RP-000005" },
-            new SystemCodeDetail { Description = "副主治医师", Code = "SC-RP-000006" },
-            new SystemCodeDetail { Description = "副主任医师", Code = "SC-RP-000007" },
-            new SystemCodeDetail { Description = "医士", Code = "SC-RP-000008" },
-            new SystemCodeDetail { Description = "医师", Code = "SC-RP-000009" },
-            new SystemCodeDetail { Description = "药剂师", Code = "SC-RP-000010" },
-            new SystemCodeDetail { Description = "护师", Code = "SC-RP-000011" },
-            new SystemCodeDetail { Description = "检验师", Code = "SC-RP-000012" },
-            new SystemCodeDetail { Description = "药剂士", Code = "SC-RP-000013" },
-            new SystemCodeDetail { Description = "主管中药师", Code = "SC-RP-000014" },
-            new SystemCodeDetail { Description = "副主任护师", Code = "SC-RP-000015" },
-            new SystemCodeDetail { Description = "心理咨询师", Code = "SC-RP-000016" },
-            new SystemCodeDetail { Description = "基层副主任中医师", Code = "SC-RP-000017" },
-            new SystemCodeDetail { Description = "影像技师", Code = "SC-RP-000018" },
-            new SystemCodeDetail { Description = "主管检验师", Code = "SC-RP-000019" },
-            new SystemCodeDetail { Description = "护士", Code = "SC-RP-000020" },
-            new SystemCodeDetail { Description = "康复治疗师", Code = "SC-RP-000021" },
-            new SystemCodeDetail { Description = "助理医师", Code = "SC-RP-000022" },
-            new SystemCodeDetail { Description = "副主任中药师", Code = "SC-RP-000023" },
-            new SystemCodeDetail { Description = "副主任药师", Code = "SC-RP-000024" },
-            new SystemCodeDetail { Description = "执业助理医师", Code = "SC-QA-000001" },
-            new SystemCodeDetail { Description = "执业护士", Code = "SC-QA-000002" },
-            new SystemCodeDetail { Description = "执业医师", Code = "SC-QA-000003" },
-            new SystemCodeDetail { Description = "药剂师", Code = "SC-QA-000004" },
-            new SystemCodeDetail { Description = "检验师", Code = "SC-QA-000005" },
-            new SystemCodeDetail { Description = "药剂士", Code = "SC-QA-000006" },
-            new SystemCodeDetail { Description = "执业药师", Code = "SC-QA-000007" },
-            new SystemCodeDetail { Description = "心理咨询师", Code = "SC-QA-000008" },
-            new SystemCodeDetail { Description = "中级技师", Code = "SC-QA-000009" },
-            new SystemCodeDetail { Description = "检验师（师）", Code = "SC-QA-000010" },
-            new SystemCodeDetail { Description = "主管药剂师", Code = "SC-QA-000011" },
-            new SystemCodeDetail { Description = "康复技师", Code = "SC-QA-000012" },
-            new SystemCodeDetail { Description = "中医", Code = "SC-PC-000001" },
-            new SystemCodeDetail { Description = "护理", Code = "SC-PC-000002" },
-            new SystemCodeDetail { Description = "临床", Code = "SC-PC-000003" },
-            new SystemCodeDetail { Description = "药学", Code = "SC-PC-000004" },
-            new SystemCodeDetail { Description = "检验", Code = "SC-PC-000005" },
-            new SystemCodeDetail { Description = "心理学", Code = "SC-PC-000006" },
-            new SystemCodeDetail { Description = "口腔", Code = "SC-PC-000007" },
-            new SystemCodeDetail { Description = "影像", Code = "SC-PC-000008" },
-            new SystemCodeDetail { Description = "公卫", Code = "SC-PC-000009" },
-            new SystemCodeDetail { Description = "护理 ", Code = "SC-PC-000010" },
-            new SystemCodeDetail { Description = "技师", Code = "SC-PC-000011" },
-            new SystemCodeDetail { Description = "初级", Code = "SC-JT-000001" },
-            new SystemCodeDetail { Description = "中级", Code = "SC-JT-000002" },
-            new SystemCodeDetail { Description = "副高", Code = "SC-JT-000003" },
-            new SystemCodeDetail { Description = "正高", Code = "SC-JT-000004" },
-            new SystemCodeDetail { Description = "中层", Code = "SC-LP-000001" },
-            new SystemCodeDetail { Description = "四川省成都卫生学校", Code = "SC-GS-000001" },
-            new SystemCodeDetail { Description = "成都中医药大学", Code = "SC-GS-000002" },
-            new SystemCodeDetail { Description = "泸州医学院", Code = "SC-GS-000003" },
-            new SystemCodeDetail { Description = "成都市中医药大学", Code = "SC-GS-000004" },
-            new SystemCodeDetail { Description = "成都电大", Code = "SC-GS-000005" },
-            new SystemCodeDetail { Description = "四川省卫生干部学院", Code = "SC-GS-000006" },
-            new SystemCodeDetail { Description = "国家开放大学", Code = "SC-GS-000007" },
-            new SystemCodeDetail { Description = "成都医学院", Code = "SC-GS-000008" },
-            new SystemCodeDetail { Description = "四川大学", Code = "SC-GS-000009" },
-            new SystemCodeDetail { Description = "成都卫校", Code = "SC-GS-000010" },
-            new SystemCodeDetail { Description = "西安交通大学", Code = "SC-GS-000011" },
-            new SystemCodeDetail { Description = "川北医学院", Code = "SC-GS-000012" },
-            new SystemCodeDetail { Description = "中国医科大学", Code = "SC-GS-000013" },
-            new SystemCodeDetail { Description = "乐山师范学院", Code = "SC-GS-000014" },
-            new SystemCodeDetail { Description = "四川中医药高等专科学校", Code = "SC-GS-000015" },
-            new SystemCodeDetail { Description = "河北医科大学", Code = "SC-GS-000016" },
-            new SystemCodeDetail { Description = "湖北省长江大学", Code = "SC-GS-000017" },
-            new SystemCodeDetail { Description = "河北联合大学", Code = "SC-GS-000018" },
-            new SystemCodeDetail { Description = "四川大学青羊校区", Code = "SC-GS-000019" },
-            new SystemCodeDetail { Description = "山西医科大学", Code = "SC-GS-000020" },
-            new SystemCodeDetail { Description = "西南医科大学", Code = "SC-GS-000021" },
-            new SystemCodeDetail { Description = "山东力明科技职业学院", Code = "SC-GS-000022" },
-            new SystemCodeDetail { Description = "遵义医学院", Code = "SC-GS-000023" },
-            new SystemCodeDetail { Description = "成都体育学院", Code = "SC-GS-000024" },
-            new SystemCodeDetail { Description = "佳木斯大学", Code = "SC-GS-000025" },
-            new SystemCodeDetail { Description = "济宁医学院", Code = "SC-GS-000026" },
-            new SystemCodeDetail { Description = "大连医科大学", Code = "SC-GS-000027" },
-            new SystemCodeDetail { Description = "蚌埠医学院", Code = "SC-GS-000028" },
-            new SystemCodeDetail { Description = "泰山医学院", Code = "SC-GS-000029" },
-            new SystemCodeDetail { Description = "中南大学", Code = "SC-GS-000030" },
-            new SystemCodeDetail { Description = "四川农业大学", Code = "SC-GS-000031" },
-            new SystemCodeDetail { Description = "广元职工医学院", Code = "SC-GS-000032" },
-            new SystemCodeDetail { Description = "成都中医学院", Code = "SC-GS-000033" },
-            new SystemCodeDetail { Description = "成都中医药大学附属针灸学院(国家开放大学)", Code = "SC-GS-000034" },
-            new SystemCodeDetail { Description = "贵洲省贵阳市贵医附院", Code = "SC-GS-000035" },
-            new SystemCodeDetail { Description = "中央广播电视大学", Code = "SC-GS-000036" },
-            new SystemCodeDetail { Description = "成都学院", Code = "SC-GS-000037" },
-            new SystemCodeDetail { Description = "雅安职业技术学院", Code = "SC-GS-000038" },
-            new SystemCodeDetail { Description = "达州职业技术学院", Code = "SC-GS-000039" },
-            new SystemCodeDetail { Description = "四川广播电视大学", Code = "SC-GS-000040" },
-            new SystemCodeDetail { Description = "四川省人民医院护理学校", Code = "SC-GS-000041" },
-            new SystemCodeDetail { Description = "辽宁中医药大学杏林学院", Code = "SC-GS-000042" },
-            new SystemCodeDetail { Description = "北京中医药大学", Code = "SC-GS-000043" },
-            new SystemCodeDetail { Description = "四川大学附设华西卫生学校", Code = "SC-GS-000044" },
-            new SystemCodeDetail { Description = "承德医学院", Code = "SC-GS-000045" },
-            new SystemCodeDetail { Description = "南京医科大学", Code = "SC-GS-000046" },
-            new SystemCodeDetail { Description = "四川工业科技学院", Code = "SC-GS-000047" },
-            new SystemCodeDetail { Description = "长沙民政职业技术学院", Code = "SC-GS-000048" },
-            new SystemCodeDetail { Description = "四川护理职业学院", Code = "SC-GS-000049" },
-            new SystemCodeDetail { Description = "广西中医药大学赛恩斯新医药学院", Code = "SC-GS-000050" },
-            new SystemCodeDetail { Description = "广安职业技术学院", Code = "SC-GS-000051" },
-            new SystemCodeDetail { Description = "重庆三峡医药高等专科学校", Code = "SC-GS-000052" },
-            new SystemCodeDetail { Description = "四川护理执业学院", Code = "SC-GS-000053" },
-            new SystemCodeDetail { Description = "西南财经大学天府学院", Code = "SC-GS-000054" },
-            new SystemCodeDetail { Description = "成都文理学院", Code = "SC-GS-000055" },
-            new SystemCodeDetail { Description = "重庆医药高等专科学校", Code = "SC-GS-000056" },
-            new SystemCodeDetail { Description = "皖南医学院", Code = "SC-GS-000057" },
-            new SystemCodeDetail { Description = "中西医结合", Code = "SC-GM-000001" },
-            new SystemCodeDetail { Description = "护理", Code = "SC-GM-000002" },
-            new SystemCodeDetail { Description = "中医学", Code = "SC-GM-000003" },
-            new SystemCodeDetail { Description = "临床医学", Code = "SC-GM-000004" },
-            new SystemCodeDetail { Description = "高级护理", Code = "SC-GM-000005" },
-            new SystemCodeDetail { Description = "行政管理", Code = "SC-GM-000006" },
-            new SystemCodeDetail { Description = "中西医临床医学", Code = "SC-GM-000007" },
-            new SystemCodeDetail { Description = "药学", Code = "SC-GM-000008" },
-            new SystemCodeDetail { Description = "预防医学", Code = "SC-GM-000009" },
-            new SystemCodeDetail { Description = "护理学", Code = "SC-GM-000010" },
-            new SystemCodeDetail { Description = "药剂学", Code = "SC-GM-000011" },
-            new SystemCodeDetail { Description = "中药学", Code = "SC-GM-000012" },
-            new SystemCodeDetail { Description = "教育与心理学", Code = "SC-GM-000013" },
-            new SystemCodeDetail { Description = "西医临床", Code = "SC-GM-000014" },
-            new SystemCodeDetail { Description = "影像", Code = "SC-GM-000015" },
-            new SystemCodeDetail { Description = "口腔医学", Code = "SC-GM-000016" },
-            new SystemCodeDetail { Description = "医学影像", Code = "SC-GM-000017" },
-            new SystemCodeDetail { Description = "医学检验", Code = "SC-GM-000018" },
-            new SystemCodeDetail { Description = "中医学专业（中医骨伤科学方向）", Code = "SC-GM-000019" },
-            new SystemCodeDetail { Description = "针灸推拿", Code = "SC-GM-000020" },
-            new SystemCodeDetail { Description = "针灸学", Code = "SC-GM-000021" },
-            new SystemCodeDetail { Description = "中西医结合临床", Code = "SC-GM-000022" },
-            new SystemCodeDetail { Description = "妇产科学", Code = "SC-GM-000023" },
-            new SystemCodeDetail { Description = "急诊医学", Code = "SC-GM-000024" },
-            new SystemCodeDetail { Description = "医学影像学", Code = "SC-GM-000025" },
-            new SystemCodeDetail { Description = "皮肤病与性病学", Code = "SC-GM-000026" },
-            new SystemCodeDetail { Description = "麻醉学", Code = "SC-GM-000027" },
-            new SystemCodeDetail { Description = "中西医临床", Code = "SC-GM-000028" },
-            new SystemCodeDetail { Description = "人力资源管理", Code = "SC-GM-000029" },
-            new SystemCodeDetail { Description = "临床", Code = "SC-GM-000030" },
-            new SystemCodeDetail { Description = "中医学（中国医科大学药学技术药学）", Code = "SC-GM-000031" },
-            new SystemCodeDetail { Description = " 护理学", Code = "SC-GM-000032" },
-            new SystemCodeDetail { Description = "针灸推拿学", Code = "SC-GM-000033" },
-            new SystemCodeDetail { Description = "康复治疗学", Code = "SC-GM-000034" },
-            new SystemCodeDetail { Description = "医学检验技术", Code = "SC-GM-000035" },
-            new SystemCodeDetail { Description = "药剂", Code = "SC-GM-000036" },
-            new SystemCodeDetail { Description = "中共党员", Code = "SC-PS-000001" },
-            new SystemCodeDetail { Description = "团员", Code = "SC-PS-000002" },
-            new SystemCodeDetail { Description = "共产党员", Code = "SC-PS-000003" },
-            new SystemCodeDetail { Description = "民革", Code = "SC-PS-000004" },
-            new SystemCodeDetail { Description = "预备党员", Code = "SC-PS-000005" },
-            new SystemCodeDetail { Description = "党员", Code = "SC-PS-000006" },
-            new SystemCodeDetail { Description = "干部", Code = "SC-CS-000001" },
-            new SystemCodeDetail { Description = "工人", Code = "SC-CS-000002" },
-            new SystemCodeDetail { Description = "其他", Code = "SC-CS-000003" },
-            new SystemCodeDetail { Description = "中专", Code = "SC-HS-000001" },
-            new SystemCodeDetail { Description = "大专(在职）", Code = "SC-HS-000002" },
-            new SystemCodeDetail { Description = "本科(在职）", Code = "SC-HS-000003" },
-            new SystemCodeDetail { Description = "大专", Code = "SC-HS-000004" },
-            new SystemCodeDetail { Description = "本科", Code = "SC-HS-000005" },
-            new SystemCodeDetail { Description = "硕士", Code = "SC-HS-000006" },
-            new SystemCodeDetail { Description = "研究生（在职）", Code = "SC-HS-000007" },
-            new SystemCodeDetail { Description = "研究生（在职）", Code = "SC-HS-000007" },
-            new SystemCodeDetail { Description = "正式-离职", Code = "SC-AS-000002" },
-            new SystemCodeDetail { Description = "正式-内退", Code = "SC-AS-000003" },
-            new SystemCodeDetail { Description = "正式-退休", Code = "SC-AS-000004" },
-            new SystemCodeDetail { Description = "正式-在职", Code = "SC-AS-000001" },
-            new SystemCodeDetail { Description = "正式-外派", Code = "SC-AS-000005" },
-            new SystemCodeDetail { Description = "正式-挂职", Code = "SC-AS-000006" },
-            new SystemCodeDetail { Description = "临时-在职", Code = "SC-AS-000007" },
-            new SystemCodeDetail { Description = "临时-离职", Code = "SC-AS-000008" },
-            new SystemCodeDetail { Description = "临时-借调", Code = "SC-AS-000009" },
-            new SystemCodeDetail { Description = "临时-外派", Code = "SC-AS-000010" });
+        #region SC-PQ
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "中医士", Code = "SC-PQ-000001" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "主管护师", Code = "SC-PQ-000002" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "中医师", Code = "SC-PQ-000003" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "主治中医师", Code = "SC-PQ-000004" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "主治医师", Code = "SC-PQ-000005" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "副主任医师", Code = "SC-PQ-000006" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "医士", Code = "SC-PQ-000007" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "医师", Code = "SC-PQ-000008" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "药剂师", Code = "SC-PQ-000009" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "护师", Code = "SC-PQ-000010" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "检验师", Code = "SC-PQ-000011" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "药剂士", Code = "SC-PQ-000012" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "基层副主任医师", Code = "SC-PQ-000013" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "主管中药师", Code = "SC-PQ-000014" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "副主任护师", Code = "SC-PQ-000015" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "心理咨询师", Code = "SC-PQ-000016" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "基层副主任中医师", Code = "SC-PQ-000017" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "主管技师", Code = "SC-PQ-000018" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "基层主治中医师", Code = "SC-PQ-000019" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "主管药剂师", Code = "SC-PQ-000020" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "主管检验师", Code = "SC-PQ-000021" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "护士", Code = "SC-PQ-000022" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "基层主管护师", Code = "SC-PQ-000023" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "基层主治医师", Code = "SC-PQ-000024" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "康复治疗师", Code = "SC-PQ-000025" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "检验士", Code = "SC-PQ-000026" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "助理医师", Code = "SC-PQ-000027" },
+            new SystemCodeDetail { SystemCodeId = PQId, Description = "主任中药师", Code = "SC-PQ-000028" },
+        #endregion SC-PQ
+        #region SC-RP
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "中医士", Code = "SC-RP-000001" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "主管护师", Code = "SC-RP-000002" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "中医师", Code = "SC-RP-000003" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "主治中医师", Code = "SC-RP-000004" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "主治医师", Code = "SC-RP-000005" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "副主治医师", Code = "SC-RP-000006" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "副主任医师", Code = "SC-RP-000007" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "医士", Code = "SC-RP-000008" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "医师", Code = "SC-RP-000009" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "药剂师", Code = "SC-RP-000010" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "护师", Code = "SC-RP-000011" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "检验师", Code = "SC-RP-000012" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "药剂士", Code = "SC-RP-000013" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "主管中药师", Code = "SC-RP-000014" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "副主任护师", Code = "SC-RP-000015" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "心理咨询师", Code = "SC-RP-000016" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "基层副主任中医师", Code = "SC-RP-000017" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "影像技师", Code = "SC-RP-000018" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "主管检验师", Code = "SC-RP-000019" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "护士", Code = "SC-RP-000020" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "康复治疗师", Code = "SC-RP-000021" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "助理医师", Code = "SC-RP-000022" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "副主任中药师", Code = "SC-RP-000023" },
+            new SystemCodeDetail { SystemCodeId = RPId, Description = "副主任药师", Code = "SC-RP-000024" },
+        #endregion SC-RP
+        #region SC-QA
+            new SystemCodeDetail { SystemCodeId = QAId, Description = "执业助理医师", Code = "SC-QA-000001" },
+            new SystemCodeDetail { SystemCodeId = QAId, Description = "执业护士", Code = "SC-QA-000002" },
+            new SystemCodeDetail { SystemCodeId = QAId, Description = "执业医师", Code = "SC-QA-000003" },
+            new SystemCodeDetail { SystemCodeId = QAId, Description = "药剂师", Code = "SC-QA-000004" },
+            new SystemCodeDetail { SystemCodeId = QAId, Description = "检验师", Code = "SC-QA-000005" },
+            new SystemCodeDetail { SystemCodeId = QAId, Description = "药剂士", Code = "SC-QA-000006" },
+            new SystemCodeDetail { SystemCodeId = QAId, Description = "执业药师", Code = "SC-QA-000007" },
+            new SystemCodeDetail { SystemCodeId = QAId, Description = "心理咨询师", Code = "SC-QA-000008" },
+            new SystemCodeDetail { SystemCodeId = QAId, Description = "中级技师", Code = "SC-QA-000009" },
+            new SystemCodeDetail { SystemCodeId = QAId, Description = "检验师（师）", Code = "SC-QA-000010" },
+            new SystemCodeDetail { SystemCodeId = QAId, Description = "主管药剂师", Code = "SC-QA-000011" },
+            new SystemCodeDetail { SystemCodeId = QAId, Description = "康复技师", Code = "SC-QA-000012" },
+        #endregion SC-QA
+        #region SC-PC
+            new SystemCodeDetail { SystemCodeId = PCId, Description = "中医", Code = "SC-PC-000001" },
+            new SystemCodeDetail { SystemCodeId = PCId, Description = "护理", Code = "SC-PC-000002" },
+            new SystemCodeDetail { SystemCodeId = PCId, Description = "临床", Code = "SC-PC-000003" },
+            new SystemCodeDetail { SystemCodeId = PCId, Description = "药学", Code = "SC-PC-000004" },
+            new SystemCodeDetail { SystemCodeId = PCId, Description = "检验", Code = "SC-PC-000005" },
+            new SystemCodeDetail { SystemCodeId = PCId, Description = "心理学", Code = "SC-PC-000006" },
+            new SystemCodeDetail { SystemCodeId = PCId, Description = "口腔", Code = "SC-PC-000007" },
+            new SystemCodeDetail { SystemCodeId = PCId, Description = "影像", Code = "SC-PC-000008" },
+            new SystemCodeDetail { SystemCodeId = PCId, Description = "公卫", Code = "SC-PC-000009" },
+            new SystemCodeDetail { SystemCodeId = PCId, Description = "护理 ", Code = "SC-PC-000010" },
+            new SystemCodeDetail { SystemCodeId = PCId, Description = "技师", Code = "SC-PC-000011" },
+        #endregion SC-PC
+        #region SC-JT
+            new SystemCodeDetail { SystemCodeId = JTId, Description = "初级", Code = "SC-JT-000001" },
+            new SystemCodeDetail { SystemCodeId = JTId, Description = "中级", Code = "SC-JT-000002" },
+            new SystemCodeDetail { SystemCodeId = JTId, Description = "副高", Code = "SC-JT-000003" },
+            new SystemCodeDetail { SystemCodeId = JTId, Description = "正高", Code = "SC-JT-000004" },
+        #endregion SC-JT
+        #region SC-LP
+            new SystemCodeDetail { SystemCodeId = LPId, Description = "中层", Code = "SC-LP-000001" },
+        #endregion SC-LP
+        #region SC-GS
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "四川省成都卫生学校", Code = "SC-GS-000001" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "成都中医药大学", Code = "SC-GS-000002" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "泸州医学院", Code = "SC-GS-000003" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "成都市中医药大学", Code = "SC-GS-000004" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "成都电大", Code = "SC-GS-000005" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "四川省卫生干部学院", Code = "SC-GS-000006" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "国家开放大学", Code = "SC-GS-000007" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "成都医学院", Code = "SC-GS-000008" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "四川大学", Code = "SC-GS-000009" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "成都卫校", Code = "SC-GS-000010" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "西安交通大学", Code = "SC-GS-000011" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "川北医学院", Code = "SC-GS-000012" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "中国医科大学", Code = "SC-GS-000013" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "乐山师范学院", Code = "SC-GS-000014" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "四川中医药高等专科学校", Code = "SC-GS-000015" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "河北医科大学", Code = "SC-GS-000016" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "湖北省长江大学", Code = "SC-GS-000017" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "河北联合大学", Code = "SC-GS-000018" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "四川大学青羊校区", Code = "SC-GS-000019" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "山西医科大学", Code = "SC-GS-000020" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "西南医科大学", Code = "SC-GS-000021" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "山东力明科技职业学院", Code = "SC-GS-000022" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "遵义医学院", Code = "SC-GS-000023" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "成都体育学院", Code = "SC-GS-000024" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "佳木斯大学", Code = "SC-GS-000025" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "济宁医学院", Code = "SC-GS-000026" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "大连医科大学", Code = "SC-GS-000027" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "蚌埠医学院", Code = "SC-GS-000028" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "泰山医学院", Code = "SC-GS-000029" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "中南大学", Code = "SC-GS-000030" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "四川农业大学", Code = "SC-GS-000031" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "广元职工医学院", Code = "SC-GS-000032" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "成都中医学院", Code = "SC-GS-000033" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "成都中医药大学附属针灸学院(国家开放大学)", Code = "SC-GS-000034" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "贵洲省贵阳市贵医附院", Code = "SC-GS-000035" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "中央广播电视大学", Code = "SC-GS-000036" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "成都学院", Code = "SC-GS-000037" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "雅安职业技术学院", Code = "SC-GS-000038" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "达州职业技术学院", Code = "SC-GS-000039" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "四川广播电视大学", Code = "SC-GS-000040" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "四川省人民医院护理学校", Code = "SC-GS-000041" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "辽宁中医药大学杏林学院", Code = "SC-GS-000042" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "北京中医药大学", Code = "SC-GS-000043" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "四川大学附设华西卫生学校", Code = "SC-GS-000044" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "承德医学院", Code = "SC-GS-000045" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "南京医科大学", Code = "SC-GS-000046" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "四川工业科技学院", Code = "SC-GS-000047" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "长沙民政职业技术学院", Code = "SC-GS-000048" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "四川护理职业学院", Code = "SC-GS-000049" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "广西中医药大学赛恩斯新医药学院", Code = "SC-GS-000050" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "广安职业技术学院", Code = "SC-GS-000051" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "重庆三峡医药高等专科学校", Code = "SC-GS-000052" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "四川护理执业学院", Code = "SC-GS-000053" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "西南财经大学天府学院", Code = "SC-GS-000054" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "成都文理学院", Code = "SC-GS-000055" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "重庆医药高等专科学校", Code = "SC-GS-000056" },
+            new SystemCodeDetail { SystemCodeId = GSId, Description = "皖南医学院", Code = "SC-GS-000057" },
+        #endregion SC-GS
+        #region SC-GM
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "中西医结合", Code = "SC-GM-000001" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "护理", Code = "SC-GM-000002" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "中医学", Code = "SC-GM-000003" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "临床医学", Code = "SC-GM-000004" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "高级护理", Code = "SC-GM-000005" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "行政管理", Code = "SC-GM-000006" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "中西医临床医学", Code = "SC-GM-000007" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "药学", Code = "SC-GM-000008" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "预防医学", Code = "SC-GM-000009" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "护理学", Code = "SC-GM-000010" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "药剂学", Code = "SC-GM-000011" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "中药学", Code = "SC-GM-000012" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "教育与心理学", Code = "SC-GM-000013" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "西医临床", Code = "SC-GM-000014" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "影像", Code = "SC-GM-000015" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "口腔医学", Code = "SC-GM-000016" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "医学影像", Code = "SC-GM-000017" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "医学检验", Code = "SC-GM-000018" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "中医学专业（中医骨伤科学方向）", Code = "SC-GM-000019" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "针灸推拿", Code = "SC-GM-000020" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "针灸学", Code = "SC-GM-000021" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "中西医结合临床", Code = "SC-GM-000022" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "妇产科学", Code = "SC-GM-000023" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "急诊医学", Code = "SC-GM-000024" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "医学影像学", Code = "SC-GM-000025" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "皮肤病与性病学", Code = "SC-GM-000026" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "麻醉学", Code = "SC-GM-000027" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "中西医临床", Code = "SC-GM-000028" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "人力资源管理", Code = "SC-GM-000029" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "临床", Code = "SC-GM-000030" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "中医学（中国医科大学药学技术药学）", Code = "SC-GM-000031" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = " 护理学", Code = "SC-GM-000032" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "针灸推拿学", Code = "SC-GM-000033" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "康复治疗学", Code = "SC-GM-000034" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "医学检验技术", Code = "SC-GM-000035" },
+            new SystemCodeDetail { SystemCodeId = GMId, Description = "药剂", Code = "SC-GM-000036" },
+        #endregion SC-GM
+        #region SC-PS
+            new SystemCodeDetail { SystemCodeId = PSId, Description = "中共党员", Code = "SC-PS-000001" },
+            new SystemCodeDetail { SystemCodeId = PSId, Description = "团员", Code = "SC-PS-000002" },
+            new SystemCodeDetail { SystemCodeId = PSId, Description = "共产党员", Code = "SC-PS-000003" },
+            new SystemCodeDetail { SystemCodeId = PSId, Description = "民革", Code = "SC-PS-000004" },
+            new SystemCodeDetail { SystemCodeId = PSId, Description = "预备党员", Code = "SC-PS-000005" },
+            new SystemCodeDetail { SystemCodeId = PSId, Description = "党员", Code = "SC-PS-000006" },
+        #endregion SC-PS
+        #region SC-CS
+            new SystemCodeDetail { SystemCodeId = CSId, Description = "干部", Code = "SC-CS-000001" },
+            new SystemCodeDetail { SystemCodeId = CSId, Description = "工人", Code = "SC-CS-000002" },
+            new SystemCodeDetail { SystemCodeId = CSId, Description = "其他", Code = "SC-CS-000003" },
+        #endregion SC-CS
+        #region SC-HS
+            new SystemCodeDetail { SystemCodeId = HSId, Description = "中专", Code = "SC-HS-000001" },
+            new SystemCodeDetail { SystemCodeId = HSId, Description = "大专(在职）", Code = "SC-HS-000002" },
+            new SystemCodeDetail { SystemCodeId = HSId, Description = "本科(在职）", Code = "SC-HS-000003" },
+            new SystemCodeDetail { SystemCodeId = HSId, Description = "大专", Code = "SC-HS-000004" },
+            new SystemCodeDetail { SystemCodeId = HSId, Description = "本科", Code = "SC-HS-000005" },
+            new SystemCodeDetail { SystemCodeId = HSId, Description = "硕士", Code = "SC-HS-000006" },
+            new SystemCodeDetail { SystemCodeId = HSId, Description = "研究生（在职）", Code = "SC-HS-000007" },
+        #endregion SC-HS
+        #region SC-AS
+            new SystemCodeDetail { SystemCodeId = ASId, Description = "正式-离职", Code = "SC-AS-000002" },
+            new SystemCodeDetail { SystemCodeId = ASId, Description = "正式-内退", Code = "SC-AS-000003" },
+            new SystemCodeDetail { SystemCodeId = ASId, Description = "正式-退休", Code = "SC-AS-000004" },
+            new SystemCodeDetail { SystemCodeId = ASId, Description = "正式-在职", Code = "SC-AS-000001" },
+            new SystemCodeDetail { SystemCodeId = ASId, Description = "正式-外派", Code = "SC-AS-000005" },
+            new SystemCodeDetail { SystemCodeId = ASId, Description = "正式-挂职", Code = "SC-AS-000006" },
+            new SystemCodeDetail { SystemCodeId = ASId, Description = "临时-在职", Code = "SC-AS-000007" },
+            new SystemCodeDetail { SystemCodeId = ASId, Description = "临时-离职", Code = "SC-AS-000008" },
+            new SystemCodeDetail { SystemCodeId = ASId, Description = "临时-借调", Code = "SC-AS-000009" },
+            new SystemCodeDetail { SystemCodeId = ASId, Description = "临时-外派", Code = "SC-AS-000010" }
+            #endregion SC-AS
+            );
+        appDbContext.SaveChanges();
     }
 }
